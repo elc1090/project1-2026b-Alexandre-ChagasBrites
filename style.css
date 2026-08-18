@@ -29,16 +29,27 @@ aside {
 
 ul {
     list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-li {
+.tools li {
     display: flex;
     align-items: center;
     cursor: pointer;
+    gap: 5px;
 }
 
-.active {
+.tools .active {
     outline: 2px solid #655561;
+}
+
+.colors li {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: black;
 }
 
 main {
@@ -53,7 +64,9 @@ main {
 
 canvas {
     outline: 2px solid black;
-    background-color: white;
     width: 960px;
     height: 540px;
+    background-position: 0px 0px, 10px 10px;
+    background-size: 20px 20px;
+    background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
 }
