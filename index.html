@@ -46,14 +46,35 @@
           <img src="assets/polygon.svg" alt="Polygon">
           <span>Polygon</span>
         </li>
+        <li>
+          <label for="lineWidth">Width:</label>
+          <input type="range" id="lineWidth" value="4" min="1" max="64">
+        </li>
+        <li>
+          <label for="fillPath">Fill:</label>
+          <input type="checkbox" id="fillPath">
+        </li>
       </ul>
+      <h2>Colors</h2>
       <ul class="colors">
-        <h2>Colors</h2>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
+        <li style="background-color: white"></li>
+        <li style="background-color: red"></li>
+        <li style="background-color: orange"></li>
+        <li style="background-color: yellow"></li>
+        <li style="background-color: green"></li>
+        <li style="background-color: cyan"></li>
+        <li style="background-color: blue"></li>
+        <li style="background-color: magenta"></li>
+        <li style="background-color: black"></li>
       </ul>
+      <p id="color">Color</p>
+      <div>
+        <h2>Canvas</h2>
+        <label for="canvasWidth">Width:</label>
+        <input type="number" id="canvasWidth" value="960" min="1" max="4096">
+        <label for="canvasHeight">Height:</label>
+        <input type="number" id="canvasHeight" value="540" min="1" max="4096">
+      </div>
     </aside>
     <main>
         <canvas></canvas>
