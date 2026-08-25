@@ -6,6 +6,7 @@ const colorText = document.getElementById("color");
 const canvasWidthInput = document.getElementById("canvasWidth");
 const canvasHeightInput = document.getElementById("canvasHeight");
 const resizeCanvasBtn = document.getElementById("resizeCanvas");
+const viewport = document.querySelector("main");
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -17,8 +18,9 @@ let isDragging = false;
 let drawTool = true;
 let selectedTool = "";
 let selectedColor = "rgb(0,0,0)";
+let originalRect = undefined;
 let selectedRect = undefined;
-let selectedSnapshot = null;
+let selectedSnapshot = undefined;
 let lineWidth = 4;
 
 window.addEventListener("load", () => {
@@ -41,9 +43,15 @@ function startDraw(e) {
     prevMouseY = e.offsetY;
     if (selectedTool === "selection" && selectedRect !== undefined && e.offsetX >= selectedRect.x && e.offsetX < selectedRect.x + selectedRect.w && e.offsetY >= selectedRect.y && e.offsetY < selectedRect.y + selectedRect.h) {
         isDragging = true;
-        ctx.putImageData(snapshot, 0, 0);
-        selectedSnapshot = ctx.getImageData(selectedRect.x, selectedRect.y, selectedRect.w, selectedRect.h);
     } else {
+
+        if (selectedTool === "selection") {
+            drawTool = false;
+            drawing(e);
+            drawTool = true;
+            snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+
         isDrawing = true;
         ctx.beginPath();
         ctx.moveTo(prevMouseX, prevMouseY);
@@ -51,38 +59,43 @@ function startDraw(e) {
         ctx.strokeStyle = selectedTool === "eraser" ? "white" : selectedColor;
         ctx.fillStyle = selectedColor;
         ctx.globalCompositeOperation = selectedTool === "eraser" ? "destination-out" : "source-over";
-        drawing(e);
     }
 }
 
 function drawing(e) {
     ctx.putImageData(snapshot, 0, 0);
 
+    viewport.style.cursor = 'crosshair';
     if (!isDrawing) {
 
+        if (selectedTool === "selection" && selectedRect !== undefined) {
+            let x = e.offsetX - selectedRect.x;
+            let y = e.offsetY - selectedRect.y;
+            if (isDragging || (x >= 0 && x < selectedRect.w && y >= 0 && y < selectedRect.h)) {
+                viewport.style.cursor = 'move';
+            } else if (x >= -16 && x < selectedRect.w + 16 && y >= -16 && y < selectedRect.h + 16) {
+                if ((x < 16 && y < 16) || (x > selectedRect.w - 16 && y > selectedRect.h - 16)) viewport.style.cursor = 'nwse-resize';
+                else if ((x < 16 && y > selectedRect.h - 16) || (x > selectedRect.w - 16 && y < 16)) viewport.style.cursor = 'nesw-resize';
+                else if (x < 0 || x > selectedRect.w) viewport.style.cursor = 'ew-resize';
+                else if (y < 0 || y > selectedRect.h) viewport.style.cursor = 'ns-resize';
+            }
+        }
 
-        if (isDragging) {
-            if (drawTool && selectedRect !== undefined) {
+        if (selectedRect !== undefined) {
+            if (selectedSnapshot !== undefined) {
+                ctx.globalCompositeOperation = "source-over";
+                ctx.clearRect(originalRect.x, originalRect.y, originalRect.w, originalRect.h);
+                ctx.drawImage(selectedSnapshot, selectedRect.x, selectedRect.y);
+            }
+
+            if (drawTool) {
                 ctx.beginPath();
                 ctx.lineWidth = 1.0;
                 ctx.strokeStyle = "white";
                 ctx.globalCompositeOperation = "difference";
-                ctx.strokeRect(selectedRect.x + e.offsetX - prevMouseX, selectedRect.y + e.offsetY - prevMouseY, selectedRect.w, selectedRect.h);
+                ctx.strokeRect(selectedRect.x, selectedRect.y, selectedRect.w, selectedRect.h);
                 ctx.stroke();
             }
-
-            ctx.clearRect(selectedRect.x, selectedRect.y, selectedRect.w, selectedRect.h);
-            ctx.putImageData(selectedSnapshot, selectedRect.x + e.offsetX - prevMouseX, selectedRect.y + e.offsetY - prevMouseY);
-            return;
-        }
-
-        if (drawTool && selectedRect !== undefined) {
-            ctx.beginPath();
-            ctx.lineWidth = 1.0;
-            ctx.strokeStyle = "white";
-            ctx.globalCompositeOperation = "difference";
-            ctx.strokeRect(selectedRect.x, selectedRect.y, selectedRect.w, selectedRect.h);
-            ctx.stroke();
         }
 
         if (drawTool && selectedTool !== "" && selectedTool !== "selection" && selectedTool !== "eyedropper") {
@@ -189,16 +202,33 @@ resizeCanvasBtn.addEventListener("click", () => {
     snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
 });
 
-canvas.addEventListener("mousedown", startDraw);
-canvas.addEventListener("mousemove", drawing);
-window.addEventListener("mouseup", (e) => {
+viewport.addEventListener("mousedown", (e) => {
+    startDraw(e);
+    drawing(e);
+});
+
+viewport.addEventListener("mousemove", (e) => {
+    if (isDragging && selectedRect !== undefined) {
+        selectedRect.x += e.movementX;
+        selectedRect.y += e.movementY;
+    }
+    drawing(e);
+});
+
+window.addEventListener("mouseup", async (e) => {
     if (isDrawing) {
-        isDrawing = false;
         if (selectedTool !== "selection") {
+            drawTool = false;
+            drawing(e);
+            drawTool = true;
             snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            isDrawing = false;
         } else {
+            isDrawing = false;
             if (prevMouseX === e.offsetX && prevMouseY === e.offsetY) {
                 selectedRect = undefined;
+                originalRect = undefined;
+                selectedSnapshot = undefined;
             } else {
                 selectedRect = {
                     x: prevMouseX,
@@ -215,18 +245,26 @@ window.addEventListener("mouseup", (e) => {
                     selectedRect.y += selectedRect.h;
                     selectedRect.h = -selectedRect.h;
                 }
+
+                originalRect = {
+                    x: selectedRect.x,
+                    y: selectedRect.y,
+                    w: selectedRect.w,
+                    h: selectedRect.h
+                };
+
+                selectedSnapshot = undefined;
+                drawTool = false;
+                drawing(e);
+                drawTool = true;
+                selectedSnapshot = await window.createImageBitmap(ctx.getImageData(selectedRect.x, selectedRect.y, selectedRect.w, selectedRect.h));
             }
         }
     }
 
     if (isDragging) {
-        drawTool = false;
-        drawing(e);
-        drawTool = true;
-        snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
         isDragging = false;
-        selectedRect.x += e.offsetX - prevMouseX;
-        selectedRect.y += e.offsetY - prevMouseY;
     }
+    
+    drawing(e);
 });
