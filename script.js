@@ -8,6 +8,7 @@ const colorInput = document.getElementById("color");
 const canvasWidthInput = document.getElementById("canvasWidth");
 const canvasHeightInput = document.getElementById("canvasHeight");
 const resizeCanvasBtn = document.getElementById("resizeCanvas");
+const downloadCanvasBtn = document.getElementById("downloadCanvas");
 const viewport = document.querySelector("main");
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
@@ -18,7 +19,7 @@ let snapshot = undefined;
 let isDrawing = false;
 let isDragging = false;
 let drawTool = true;
-let selectedTool = "";
+let selectedTool = "brush";
 let selectedColor = "#000000ff";
 let selectedHue = 0;
 let originalRect = undefined;
@@ -91,17 +92,21 @@ function setSelectedColor(color) {
 }
 
 function startDraw(e) {
-    prevMouseX = e.offsetX;
-    prevMouseY = e.offsetY;
+    prevMouseX = e.clientX - canvas.getBoundingClientRect().x;
+    prevMouseY = e.clientY - canvas.getBoundingClientRect().y;
     if (selectedTool === "selection" && selectedRect !== undefined && e.offsetX >= selectedRect.x && e.offsetX < selectedRect.x + selectedRect.w && e.offsetY >= selectedRect.y && e.offsetY < selectedRect.y + selectedRect.h) {
         isDragging = true;
     } else {
 
-        if (selectedTool === "selection") {
+        if (selectedSnapshot !== undefined) {
             drawTool = false;
             drawing(e);
             drawTool = true;
             snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            selectedRect = undefined;
+            originalRect = undefined;
+            selectedSnapshot = undefined;
         }
 
         isDrawing = true;
@@ -117,12 +122,15 @@ function startDraw(e) {
 function drawing(e) {
     ctx.putImageData(snapshot, 0, 0);
 
+    let cursorX = e.clientX - canvas.getBoundingClientRect().x;
+    let cursorY = e.clientY - canvas.getBoundingClientRect().y;
+    
     viewport.style.cursor = 'crosshair';
     if (!isDrawing) {
 
         if (selectedTool === "selection" && selectedRect !== undefined) {
-            let x = e.offsetX - selectedRect.x;
-            let y = e.offsetY - selectedRect.y;
+            let x = cursorX - selectedRect.x;
+            let y = cursorY - selectedRect.y;
             if (isDragging || (x >= 0 && x < selectedRect.w && y >= 0 && y < selectedRect.h)) {
                 viewport.style.cursor = 'move';
             } else if (x >= -16 && x < selectedRect.w + 16 && y >= -16 && y < selectedRect.h + 16) {
@@ -157,7 +165,7 @@ function drawing(e) {
             ctx.strokeStyle = selectedTool === "eraser" ? "white" : selectedColor;
             ctx.fillStyle = selectedColor;
             ctx.globalCompositeOperation = selectedTool === "eraser" ? "difference" : "source-over";
-            ctx.arc(e.offsetX, e.offsetY, lineWidth * 0.5, 0, 2 * Math.PI);
+            ctx.arc(cursorX, cursorY, lineWidth * 0.5, 0, 2 * Math.PI);
             selectedTool === "eraser" ? ctx.stroke() : ctx.fill();
         }
 
@@ -168,26 +176,27 @@ function drawing(e) {
         ctx.lineWidth = 1.0;
         ctx.strokeStyle = "white";
         ctx.globalCompositeOperation = "difference";
-        ctx.strokeRect(prevMouseX, prevMouseY, e.offsetX - prevMouseX, e.offsetY - prevMouseY);
+        ctx.strokeRect(prevMouseX, prevMouseY, cursorX - prevMouseX, cursorY - prevMouseY);
     } else if (selectedTool === "brush" || selectedTool === "eraser") {
-        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.lineTo(cursorX, cursorY);
         ctx.stroke();
     } else if (selectedTool === "spray") {
         for (let i = 0; i < lineWidth; i++) {
             let radius = Math.sqrt(Math.random()) * lineWidth;
             let angle = Math.random() * 2 * Math.PI;
-            let x = Math.floor(e.offsetX + Math.cos(angle) * radius);
-            let y = Math.floor(e.offsetY + Math.sin(angle) * radius);
-            if (x >= 0 && x < snapshot.width && y >= 0 && y < snapshot.height) {     
-                snapshot.data[(x + y * snapshot.width) * 4 + 0] = 0;
-                snapshot.data[(x + y * snapshot.width) * 4 + 1] = 0;
-                snapshot.data[(x + y * snapshot.width) * 4 + 2] = 0;
-                snapshot.data[(x + y * snapshot.width) * 4 + 3] = 255;
+            let x = Math.floor(cursorX + Math.cos(angle) * radius);
+            let y = Math.floor(cursorY + Math.sin(angle) * radius);
+            if (x >= 0 && x < snapshot.width && y >= 0 && y < snapshot.height) {
+                let color = stringToRgb(selectedColor);
+                snapshot.data[(x + y * snapshot.width) * 4 + 0] = color.r * color.a / 255.0 + snapshot.data[(x + y * snapshot.width) * 4 + 0] * (1.0 - color.a / 255.0);
+                snapshot.data[(x + y * snapshot.width) * 4 + 1] = color.g * color.a / 255.0 + snapshot.data[(x + y * snapshot.width) * 4 + 1] * (1.0 - color.a / 255.0);
+                snapshot.data[(x + y * snapshot.width) * 4 + 2] = color.b * color.a / 255.0 + snapshot.data[(x + y * snapshot.width) * 4 + 2] * (1.0 - color.a / 255.0);
+                snapshot.data[(x + y * snapshot.width) * 4 + 3] = color.a * color.a / 255.0 + snapshot.data[(x + y * snapshot.width) * 4 + 3] * (1.0 - color.a / 255.0);
             }
         }
     } else if (selectedTool === "eyedropper") {
-        let x = Math.floor(e.offsetX);
-        let y = Math.floor(e.offsetY);
+        let x = Math.floor(cursorX);
+        let y = Math.floor(cursorY);
         if (x >= 0 && x < snapshot.width && y >= 0 && y < snapshot.height) {
             let rgb = {
                 r: snapshot.data[(x + y * snapshot.width) * 4 + 0],
@@ -200,21 +209,21 @@ function drawing(e) {
     } else if (selectedTool === "line") {
         ctx.beginPath();
         ctx.moveTo(prevMouseX, prevMouseY);
-        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.lineTo(cursorX, cursorY);
         ctx.stroke();
     } else if (selectedTool === "rectangle") {
         fillPathInput.checked ? 
-            ctx.fillRect(prevMouseX, prevMouseY, e.offsetX - prevMouseX, e.offsetY - prevMouseY) :
-            ctx.strokeRect(prevMouseX, prevMouseY, e.offsetX - prevMouseX, e.offsetY - prevMouseY);
+            ctx.fillRect(prevMouseX, prevMouseY, cursorX - prevMouseX, cursorY - prevMouseY) :
+            ctx.strokeRect(prevMouseX, prevMouseY, cursorX - prevMouseX, cursorY - prevMouseY);
     } else if (selectedTool === "circle") {
         ctx.beginPath();
-        let radius = Math.max(lineWidth * 0.5, Math.sqrt((e.offsetX - prevMouseX) * (e.offsetX - prevMouseX) + (e.offsetY - prevMouseY) * (e.offsetY - prevMouseY)));
+        let radius = Math.max(lineWidth * 0.5, Math.sqrt((cursorX - prevMouseX) * (cursorX - prevMouseX) + (cursorY - prevMouseY) * (cursorY - prevMouseY)));
         ctx.arc(prevMouseX, prevMouseY, radius, 0, 2 * Math.PI);
         fillPathInput.checked ? ctx.fill() : ctx.stroke();
     } else if (selectedTool === "polygon") {
         ctx.beginPath();
-        let radius = Math.max(lineWidth * 0.5, Math.sqrt((e.offsetX - prevMouseX) * (e.offsetX - prevMouseX) + (e.offsetY - prevMouseY) * (e.offsetY - prevMouseY)));
-        let offset = Math.atan2(e.offsetY - prevMouseY, e.offsetX - prevMouseX);
+        let radius = Math.max(lineWidth * 0.5, Math.sqrt((cursorX - prevMouseX) * (cursorX - prevMouseX) + (cursorY - prevMouseY) * (cursorY - prevMouseY)));
+        let offset = Math.atan2(cursorY - prevMouseY, cursorX - prevMouseX);
         for (let i = 0; i < 5; i++) {
             let angle = offset + i / 5 * 2 * Math.PI;
             let x = prevMouseX + Math.cos(angle) * radius;
@@ -273,6 +282,13 @@ resizeCanvasBtn.addEventListener("click", () => {
     snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
 });
 
+downloadCanvasBtn.addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = `${Date.now()}.jpg`;
+    link.href = canvas.toDataURL();
+    link.click();
+});
+
 viewport.addEventListener("mousedown", (e) => {
     startDraw(e);
     drawing(e);
@@ -296,7 +312,11 @@ window.addEventListener("mouseup", async (e) => {
             isDrawing = false;
         } else {
             isDrawing = false;
-            if (prevMouseX === e.offsetX && prevMouseY === e.offsetY) {
+
+            let cursorX = e.clientX - canvas.getBoundingClientRect().x;
+            let cursorY = e.clientY - canvas.getBoundingClientRect().y;
+
+            if (prevMouseX === cursorX && prevMouseY === cursorY) {
                 selectedRect = undefined;
                 originalRect = undefined;
                 selectedSnapshot = undefined;
@@ -304,8 +324,8 @@ window.addEventListener("mouseup", async (e) => {
                 selectedRect = {
                     x: prevMouseX,
                     y: prevMouseY,
-                    w: e.offsetX - prevMouseX,
-                    h: e.offsetY - prevMouseY
+                    w: cursorX - prevMouseX,
+                    h: cursorY - prevMouseY
                 };
 
                 if (selectedRect.w < 0) {

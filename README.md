@@ -1,13 +1,6 @@
 # Projeto: Remake de aplicação web simples
 
-> 1. Leia com atenção as instruções abaixo para editar este README em formato Markdown.
-> 2. Substitua todos os trechos de texto iniciados com "Substitua" por informações do seu projeto, conforme solicitado em cada trecho.
-> 3. Substitua a imagem animada por um GIF/WEBP mostrando o resultado do seu projeto (o arquivo pode ser armazenado no repositório ou em URL externa). 
-> 4. Remova todas as instruções de entrega.
-> 5. Renomeie esta arquivo para README.md e entregue-o dentro da pasta raiz do seu repositório de entrega. 
-> 6. Double-check: Certifique-se de que seu README.md não contenha instruções de entrega e seja visualizado corretamente ao abrir seu repositório!
-
-![Substitua a imagem ao lado por um GIF/WEBP animado mostrando seu projeto](./moho_follow_through2.gif "GIF animado do projeto. Imagem temporária de Moho Animation https://moho.lostmarble.com/products/moho-pro-special-halls-head-college")
+![GIF animado do projeto](./drawing-board.gif)
 
 ## Acesso
 
@@ -26,6 +19,8 @@ Alexandre Chagas Brites - Ciência da Computação
 
 ### Descrição
 
+O drawing-board é um aplicativo web que permite criar imagens e desenhar nelas usando diversas ferramentas. Foi desenvolvido por [jimmyurl](https://github.com/jimmyurl),
+utilizando apenas HTML, CSS e JavaScript. 
 Substitua este texto por uma descrição do app original. Inclua observações sobre sua autoria, conteúdo, aparência e código.
 
 ## Demanda do(a) cliente
@@ -36,21 +31,57 @@ Victor Mateus Severo Ferreira
 
 ### Demanda
 
-- [ ] Implementar a feature de desenho de polígonos
-- [x] Poder definir a resolução do quadro
-- [x] Ter um color picker que possibilita escolher qualquer cor em HSV
-- [x] Ferramenta de Spray
-- [ ] Ferramenta de seleção que possibilita mover, rotacionar, escalar partes da imagem
+- Implementar a feature de desenho de polígonos
+- Poder definir a resolução do quadro
+- Ter um color picker que possibilita escolher qualquer cor em HSV
+- Ferramenta de Spray
+- Ferramenta de seleção que possibilita mover, rotacionar, escalar partes da imagem
 
 ## Desenvolvimento
 
 ### Processo
 
-Substitua este texto por uma descrição do processo de desenvolvimento **em primeira pessoa, sem ajuda de IA**, explicando como você buscou entender o código existente, o que conhecia ou não, como lidou com as demandas (quais foram atendidas, não-atendidas, substituídas/adicionadas). 
+Eu comecei analisando o arquivo index.html enquanto o inspecionava com as developer tools do browser. Depois analisei como o javascript fazia o desenho no canvas.
+Para o desenvolvimento eu fui copiando e modificando aos poucos as funcionalidades do projeto original. Após ter uma base que permitia desenhar, implementei as ferramentas
+que não funcionavam no projeto original. As demandas foram implementadas junto de um melhor feedback sobre a ferramenta selecionada.
+
+- [ ] Implementar a feature de desenho de polígonos
+  - Suporta apenas pentágonos regulares 
+- [x] Poder definir a resolução do quadro
+- [x] Ter um color picker que possibilita escolher qualquer cor em HSV
+- [x] Ferramenta de Spray
+- [ ] Ferramenta de seleção que possibilita mover, rotacionar, escalar partes da imagem
+  - Rotacionar e escalar partes da imagem não foi implementado
 
 ### Trechos de código
 
-Indique pelo menos 3 trechos de código que você queira destacar para a turma (por exemplo, para contrastar com o código original, para explicar algo que aprendeu, para alertar sobre alguma dificuldade de compreensão, para mostrar uma curiosidade, etc).
+Coordenada do Cursor:
+```
+// Versão original
+canvas.addEventListener("mousemove", drawing);
+e.offsetX;
+e.offsetY;
+
+// Minha versão
+viewport.addEventListener("mousemove", drawing);
+let cursorX = e.clientX - canvas.getBoundingClientRect().x;
+let cursorY = e.clientY - canvas.getBoundingClientRect().y;
+```
+
+Configuração da Ferramenta:
+```
+ctx.lineWidth = lineWidth;
+ctx.strokeStyle = selectedTool === "eraser" ? "white" : selectedColor;
+ctx.fillStyle = selectedColor;
+ctx.globalCompositeOperation = selectedTool === "eraser" ? "destination-out" : "source-over";
+```
+
+Color Picker:
+```
+saturationValuePicker.style.backgroundBlendMode = 'multiply';
+saturationValuePicker.style.backgroundImage = `linear-gradient(white, black),linear-gradient(to right, white, ${rgbToString(rgb)})`;
+huePicker.style.backgroundImage = 'linear-gradient(to right, red, yellow, #00ff00, cyan, blue, magenta, red)';
+```
 
 ## Tecnologias
 
@@ -66,9 +97,10 @@ Indique pelo menos 3 trechos de código que você queira destacar para a turma (
 
 ## Referências e créditos
 
-Substitua este trecho por uma lista bem detalhada de todo material que você consultou para ajudar no projeto, por exemplo:  URLs de vídeos ou outro material consultado, créditos para colegas que colaboraram, geradores de código, etc.
-- ...
-- ...
+- https://developer.mozilla.org/pt-BR/
+- https://github.com/aseprite/aseprite
+- https://en.wikipedia.org/wiki/HSL_and_HSV
+- https://stackoverflow.com/questions/23090019/fastest-formula-to-get-hue-from-rgb
 
 ---
 Projeto entregue para a disciplina de [Desenvolvimento de Software para a Web](http://github.com/andreainfufsm/elc1090-2026b) em 2026b
