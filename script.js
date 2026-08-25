@@ -18,6 +18,8 @@ let prevMouseY = undefined;
 let snapshot = undefined;
 let isDrawing = false;
 let isDragging = false;
+let isSaturing = false;
+let isHueing = false;
 let drawTool = true;
 let selectedTool = "brush";
 let selectedColor = "#000000ff";
@@ -55,12 +57,17 @@ function rgbToHue(rgb) {
 function hsvToRgb(hsv) {
     let c = hsv.v * hsv.s * 255;
     let x = c * (1 - Math.abs(((hsv.h * 6) % 2) - 1));
-    if (hsv.h * 360 < 60) return { r: c, g: x, b: 0, a: 255 };
-    if (hsv.h * 360 < 120) return { r: x, g: c, b: 0, a: 255 };
-    if (hsv.h * 360 < 180) return { r: 0, g: c, b: x, a: 255 };
-    if (hsv.h * 360 < 240) return { r: 0, g: x, b: c, a: 255 };
-    if (hsv.h * 360 < 300) return { r: x, g: 0, b: c, a: 255 };
-    return { r: c, g: 0, b: x, a: 255 };
+    let rgb;
+    if (hsv.h * 360 < 60) rgb = { r: c, g: x, b: 0, a: 255 };
+    else if (hsv.h * 360 < 120) rgb = { r: x, g: c, b: 0, a: 255 };
+    else if (hsv.h * 360 < 180) rgb = { r: 0, g: c, b: x, a: 255 };
+    else if (hsv.h * 360 < 240) rgb = { r: 0, g: x, b: c, a: 255 };
+    else if (hsv.h * 360 < 300) rgb = { r: x, g: 0, b: c, a: 255 };
+    else rgb = { r: c, g: 0, b: x, a: 255 };
+    rgb.r += hsv.v * 255 - c;
+    rgb.g += hsv.v * 255 - c;
+    rgb.b += hsv.v * 255 - c;
+    return rgb;
 }
 
 function stringToRgb(str) {
@@ -81,14 +88,38 @@ function rgbToString(rgb) {
 function setSelectedColor(color) {
     selectedColor = color;
     colorInput.value = color.substring(1);
+    colorInput.style.backgroundColor = color;
 
     let rgb = stringToRgb(color);
+    colorInput.style.color = Math.max(rgb.r, rgb.g, rgb.b) / 255.0 < 0.5 ? 'white' : 'black';
+
     let hsv = { h: rgbToHue(rgb), s: 1.0, v: 1.0 };
     if (!isNaN(hsv.h)) {
         selectedHue = hsv.h;
         rgb = hsvToRgb(hsv);
         saturationValuePicker.style.backgroundImage = `linear-gradient(white, black),linear-gradient(to right, white, ${rgbToString(rgb)})`;
     }
+}
+
+function setSaturationLight(e) {
+    if (!isSaturing) return;
+
+    let hsv = { h: selectedHue, s: e.offsetX / saturationValuePicker.offsetWidth, v: 1.0 - e.offsetY / saturationValuePicker.offsetHeight };
+    if (hsv.s < 0.0 || hsv.s > 1.0 || hsv.v < 0.0 || hsv.v > 1.0) return;
+
+    let rgb = hsvToRgb(hsv);
+    setSelectedColor(rgbToString(rgb));
+}
+
+function setHue(e) {
+    if (!isHueing) return;
+
+    let hsv = { h: e.offsetX / huePicker.offsetWidth, s: 1.0, v: 1.0 };
+    if (hsv.h < 0.0 || hsv.h > 1.0) return;
+
+    selectedHue = hsv.h;
+    let rgb = hsvToRgb(hsv);
+    saturationValuePicker.style.backgroundImage = `linear-gradient(white, black),linear-gradient(to right, white, ${rgbToString(rgb)})`;
 }
 
 function startDraw(e) {
@@ -251,24 +282,15 @@ colorBtns.forEach(btn => {
     });
 });
 
-saturationValuePicker.addEventListener("mousedown", (e) => {
-    let hsv = { h: selectedHue, s: e.offsetX / saturationValuePicker.offsetWidth, v: 1.0 - e.offsetY / saturationValuePicker.offsetHeight };
-    if (hsv.s < 0.0 || hsv.s > 1.0 || hsv.v < 0.0 || hsv.v > 1.0) return;
+saturationValuePicker.addEventListener("mousedown", (e) => { isSaturing = true; setSaturationLight(e); });
+saturationValuePicker.addEventListener("mousemove", setSaturationLight);
+saturationValuePicker.addEventListener("mouseup", (e) => isSaturing = false);
 
-    let rgb = hsvToRgb(hsv);
-    setSelectedColor(rgbToString(rgb));
-});
+huePicker.addEventListener("mousedown", (e) => { isHueing = true; setHue(e); });
+huePicker.addEventListener("mousemove", setHue);
+huePicker.addEventListener("mouseup", (e) => isHueing = false);
 
-huePicker.addEventListener("mousedown", (e) => {
-    let hsv = { h: e.offsetX / huePicker.offsetWidth, s: 1.0, v: 1.0 };
-    if (hsv.h < 0.0 || hsv.h > 1.0) return;
-
-    selectedHue = hsv.h;
-    let rgb = hsvToRgb(hsv);
-    saturationValuePicker.style.backgroundImage = `linear-gradient(white, black),linear-gradient(to right, white, ${rgbToString(rgb)})`;
-});
-
-colorInput.addEventListener("change", () => selectedColor = `#${colorInput.value}`);
+colorInput.addEventListener("change", () => setSelectedColor(`#${colorInput.value}`));
 
 resizeCanvasBtn.addEventListener("click", () => {
     canvas.width = canvasWidthInput.value;
