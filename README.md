@@ -38,7 +38,7 @@ Victor Mateus Severo Ferreira
 
 - [ ] Implementar a feature de desenho de polígonos
 - [x] Poder definir a resolução do quadro
-- [ ] Ter um color picker que possibilita escolher qualquer cor em HSV
+- [x] Ter um color picker que possibilita escolher qualquer cor em HSV
 - [x] Ferramenta de Spray
 - [ ] Ferramenta de seleção que possibilita mover, rotacionar, escalar partes da imagem
 

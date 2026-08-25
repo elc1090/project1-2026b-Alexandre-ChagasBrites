@@ -8,72 +8,79 @@
   </head>
   <body>
     <aside>
-      <ul class="tools">
+      <div>
         <h2>Tools</h2>
-        <li class="tool" id="selection">
-          <img src="assets/selection.svg" alt="Selection">
-          <span>Selection</span>
-        </li>
-        <li class="tool" id="brush">
-          <img src="assets/brush.svg" alt="Brush">
-          <span>Brush</span>
-        </li>
-        <li class="tool" id="spray">
-          <img src="assets/spray.svg" alt="Spray">
-          <span>Spray</span>
-        </li>
-        <li class="tool" id="eraser">
-          <img src="assets/eraser.svg" alt="Eraser">
-          <span>Eraser</span>
-        </li>
-        <li class="tool" id="eyedropper">
-          <img src="assets/eyedropper.svg" alt="Eyedropper">
-          <span>Eyedropper</span>
-        </li>
-        <li class="tool" id="line">
-          <img src="assets/line.svg" alt="Line">
-          <span>Line</span>
-        </li>
-        <li class="tool" id="rectangle">
-          <img src="assets/rectangle.svg" alt="Rectangle">
-          <span>Rectangle</span>
-        </li>
-        <li class="tool" id="circle">
-          <img src="assets/circle.svg" alt="Circle">
-          <span>Circle</span>
-        </li>
-        <li class="tool" id="polygon">
-          <img src="assets/polygon.svg" alt="Polygon">
-          <span>Polygon</span>
-        </li>
-        <li>
+        <ul class="tools">
+          <li class="tool" id="selection">
+            <img src="assets/selection.svg" alt="Selection">
+            <span>Selection</span>
+          </li>
+          <li class="tool" id="brush">
+            <img src="assets/brush.svg" alt="Brush">
+            <span>Brush</span>
+          </li>
+          <li class="tool" id="spray">
+            <img src="assets/spray.svg" alt="Spray">
+            <span>Spray</span>
+          </li>
+          <li class="tool" id="eraser">
+            <img src="assets/eraser.svg" alt="Eraser">
+            <span>Eraser</span>
+          </li>
+          <li class="tool" id="eyedropper">
+            <img src="assets/eyedropper.svg" alt="Eyedropper">
+            <span>Eyedropper</span>
+          </li>
+          <li class="tool" id="line">
+            <img src="assets/line.svg" alt="Line">
+            <span>Line</span>
+          </li>
+          <li class="tool" id="rectangle">
+            <img src="assets/rectangle.svg" alt="Rectangle">
+            <span>Rectangle</span>
+          </li>
+          <li class="tool" id="circle">
+            <img src="assets/circle.svg" alt="Circle">
+            <span>Circle</span>
+          </li>
+          <li class="tool" id="polygon">
+            <img src="assets/polygon.svg" alt="Polygon">
+            <span>Polygon</span>
+          </li>
+        </ul>
+        <ul style="display: grid; grid-template-columns: auto 60px; align-items: start;">
           <label for="lineWidth">Width:</label>
           <input type="range" id="lineWidth" value="4" min="1" max="64">
-        </li>
-        <li>
           <label for="fillPath">Fill:</label>
           <input type="checkbox" id="fillPath">
-        </li>
-      </ul>
-      <h2>Colors</h2>
-      <ul class="colors">
-        <li style="background-color: white"></li>
-        <li style="background-color: red"></li>
-        <li style="background-color: orange"></li>
-        <li style="background-color: yellow"></li>
-        <li style="background-color: green"></li>
-        <li style="background-color: cyan"></li>
-        <li style="background-color: blue"></li>
-        <li style="background-color: magenta"></li>
-        <li style="background-color: black"></li>
-      </ul>
-      <p id="color">Color</p>
-      <div>
+        </ul>
+      </div>
+      <div style="gap: 5px;">
+        <h2>Colors</h2>
+        <ul class="colors">
+          <li data-color="000000ff" style="background-color: black"></li>
+          <li data-color="808080ff" style="background-color: gray;"></li>
+          <li data-color="ffffffff" style="background-color: white;"></li>
+          <li data-color="ff0000ff" style="background-color: red"></li>
+          <li data-color="ffa500ff" style="background-color: orange"></li>
+          <li data-color="ffff00ff" style="background-color: yellow"></li>
+          <li data-color="00ff00ff" style="background-color: #00ff00"></li>
+          <li data-color="00ffffff" style="background-color: cyan"></li>
+          <li data-color="0000ffff" style="background-color: blue"></li>
+          <li data-color="ff00ffff" style="background-color: magenta"></li>
+        </ul>
+        <div id="saturationValuePicker" style="width: 125px; height: 125px; border: 2px solid black; background-blend-mode: multiply; background-image: linear-gradient(white, black),linear-gradient(to right, white, #ff0000);"></div>
+        <div id="huePicker" style="width: 125px; height: 25px; border: 2px solid black; background-image: linear-gradient(to right, red, yellow, #00ff00, cyan, blue, magenta, red);"></div>
+        <input type="text" id="color" maxlength="8" style="width: 125px;">
+      </div>
+      <div style="gap: 5px;">
         <h2>Canvas</h2>
-        <label for="canvasWidth">Width:</label>
-        <input type="number" id="canvasWidth" value="960" min="1" max="4096">
-        <label for="canvasHeight">Height:</label>
-        <input type="number" id="canvasHeight" value="540" min="1" max="4096">
+        <ul style="display: grid; grid-template-columns: auto auto;">
+          <label for="canvasWidth">Width:</label>
+          <input type="number" id="canvasWidth" value="960" min="1" max="4096">
+          <label for="canvasHeight">Height:</label>
+          <input type="number" id="canvasHeight" value="540" min="1" max="4096">
+        </ul>
         <input type="button" id="resizeCanvas" value="Resize">
       </div>
     </aside>

@@ -2,7 +2,9 @@ const toolBtns = document.querySelectorAll(".tool");
 const lineWidthInput = document.getElementById("lineWidth");
 const fillPathInput = document.getElementById("fillPath");
 const colorBtns = document.querySelectorAll(".colors li");
-const colorText = document.getElementById("color");
+const saturationValuePicker = document.getElementById("saturationValuePicker");
+const huePicker = document.getElementById("huePicker");
+const colorInput = document.getElementById("color");
 const canvasWidthInput = document.getElementById("canvasWidth");
 const canvasHeightInput = document.getElementById("canvasHeight");
 const resizeCanvasBtn = document.getElementById("resizeCanvas");
@@ -17,7 +19,8 @@ let isDrawing = false;
 let isDragging = false;
 let drawTool = true;
 let selectedTool = "";
-let selectedColor = "rgb(0,0,0)";
+let selectedColor = "#000000ff";
+let selectedHue = 0;
 let originalRect = undefined;
 let selectedRect = undefined;
 let selectedSnapshot = undefined;
@@ -31,12 +34,61 @@ window.addEventListener("load", () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+    setSelectedColor(selectedColor);
+
     lineWidthInput.value = lineWidth;
     fillPathInput.checked = false;
-    colorText.textContent = selectedColor;
     canvasWidthInput.value = canvas.width;
     canvasHeightInput.value = canvas.height;
 });
+
+function rgbToHue(rgb) {
+    let r = rgb.r / 255.0;
+    let g = rgb.g / 255.0;
+    let b = rgb.b / 255.0;
+    if (r > g && r > b) return ((g - b) / (Math.max(r, g, b) - Math.min(r, g, b))) / 6.0;
+    if (g > b) return (2.0 + (b - r) / (Math.max(r, g, b) - Math.min(r, g, b))) / 6.0;
+    return (4.0 + (r - g) / (Math.max(r, g, b) - Math.min(r, g, b))) / 6.0;
+}
+
+function hsvToRgb(hsv) {
+    let c = hsv.v * hsv.s * 255;
+    let x = c * (1 - Math.abs(((hsv.h * 6) % 2) - 1));
+    if (hsv.h * 360 < 60) return { r: c, g: x, b: 0, a: 255 };
+    if (hsv.h * 360 < 120) return { r: x, g: c, b: 0, a: 255 };
+    if (hsv.h * 360 < 180) return { r: 0, g: c, b: x, a: 255 };
+    if (hsv.h * 360 < 240) return { r: 0, g: x, b: c, a: 255 };
+    if (hsv.h * 360 < 300) return { r: x, g: 0, b: c, a: 255 };
+    return { r: c, g: 0, b: x, a: 255 };
+}
+
+function stringToRgb(str) {
+    const fromHex = (num) => parseInt(num, 16);
+    return {
+        r: fromHex(selectedColor.substring(1, 3)),
+        g: fromHex(selectedColor.substring(3, 5)),
+        b: fromHex(selectedColor.substring(5, 7)),
+        a: 255
+    };
+}
+
+function rgbToString(rgb) {
+    const toHex = (num) => Math.round(num).toString(16).padStart(2, '0');
+    return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}${toHex(rgb.a)}`;
+}
+
+function setSelectedColor(color) {
+    selectedColor = color;
+    colorInput.value = color.substring(1);
+
+    let rgb = stringToRgb(color);
+    let hsv = { h: rgbToHue(rgb), s: 1.0, v: 1.0 };
+    if (!isNaN(hsv.h)) {
+        selectedHue = hsv.h;
+        rgb = hsvToRgb(hsv);
+        saturationValuePicker.style.backgroundImage = `linear-gradient(white, black),linear-gradient(to right, white, ${rgbToString(rgb)})`;
+    }
+}
 
 function startDraw(e) {
     prevMouseX = e.offsetX;
@@ -78,6 +130,7 @@ function drawing(e) {
                 else if ((x < 16 && y > selectedRect.h - 16) || (x > selectedRect.w - 16 && y < 16)) viewport.style.cursor = 'nesw-resize';
                 else if (x < 0 || x > selectedRect.w) viewport.style.cursor = 'ew-resize';
                 else if (y < 0 || y > selectedRect.h) viewport.style.cursor = 'ns-resize';
+                //'grab'
             }
         }
 
@@ -135,14 +188,14 @@ function drawing(e) {
     } else if (selectedTool === "eyedropper") {
         let x = Math.floor(e.offsetX);
         let y = Math.floor(e.offsetY);
-        if (x >= 0 && x < snapshot.width && y >= 0 && y < snapshot.height) {     
-            let r = snapshot.data[(x + y * snapshot.width) * 4 + 0];
-            let g = snapshot.data[(x + y * snapshot.width) * 4 + 1];
-            let b = snapshot.data[(x + y * snapshot.width) * 4 + 2];
-            let a = snapshot.data[(x + y * snapshot.width) * 4 + 3];
-            const toHex = (num) => num.toString(16).padStart(2, '0');
-            selectedColor = `#${toHex(r)}${toHex(g)}${toHex(b)}${toHex(a)}`;
-            colorText.textContent = selectedColor;
+        if (x >= 0 && x < snapshot.width && y >= 0 && y < snapshot.height) {
+            let rgb = {
+                r: snapshot.data[(x + y * snapshot.width) * 4 + 0],
+                g: snapshot.data[(x + y * snapshot.width) * 4 + 1],
+                b: snapshot.data[(x + y * snapshot.width) * 4 + 2],
+                a: snapshot.data[(x + y * snapshot.width) * 4 + 3]
+            };
+            setSelectedColor(rgbToString(rgb));
         }
     } else if (selectedTool === "line") {
         ctx.beginPath();
@@ -185,10 +238,28 @@ lineWidthInput.addEventListener("change", () => lineWidth = lineWidthInput.value
 
 colorBtns.forEach(btn => {
     btn.addEventListener("click", () => {
-        selectedColor = window.getComputedStyle(btn).backgroundColor;
-        colorText.textContent = selectedColor;
+        setSelectedColor(`#${btn.dataset.color}`);
     });
 });
+
+saturationValuePicker.addEventListener("mousedown", (e) => {
+    let hsv = { h: selectedHue, s: e.offsetX / saturationValuePicker.offsetWidth, v: 1.0 - e.offsetY / saturationValuePicker.offsetHeight };
+    if (hsv.s < 0.0 || hsv.s > 1.0 || hsv.v < 0.0 || hsv.v > 1.0) return;
+
+    let rgb = hsvToRgb(hsv);
+    setSelectedColor(rgbToString(rgb));
+});
+
+huePicker.addEventListener("mousedown", (e) => {
+    let hsv = { h: e.offsetX / huePicker.offsetWidth, s: 1.0, v: 1.0 };
+    if (hsv.h < 0.0 || hsv.h > 1.0) return;
+
+    selectedHue = hsv.h;
+    let rgb = hsvToRgb(hsv);
+    saturationValuePicker.style.backgroundImage = `linear-gradient(white, black),linear-gradient(to right, white, ${rgbToString(rgb)})`;
+});
+
+colorInput.addEventListener("change", () => selectedColor = `#${colorInput.value}`);
 
 resizeCanvasBtn.addEventListener("click", () => {
     canvas.width = canvasWidthInput.value;
