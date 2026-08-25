@@ -98,6 +98,7 @@ huePicker.style.backgroundImage = 'linear-gradient(to right, red, yellow, #00ff0
 ## Referências e créditos
 
 - https://developer.mozilla.org/pt-BR/
+- https://fonts.google.com/
 - https://github.com/aseprite/aseprite
 - https://en.wikipedia.org/wiki/HSL_and_HSV
 - https://stackoverflow.com/questions/23090019/fastest-formula-to-get-hue-from-rgb
