@@ -8,7 +8,7 @@
   </head>
   <body>
     <aside>
-      <div>
+      <div style="gap: 8px;">
         <h2>Tools</h2>
         <ul class="tools">
           <li class="tool" id="selection">
@@ -55,9 +55,9 @@
           <input type="checkbox" id="fillPath">
         </ul>
       </div>
-      <div style="gap: 5px;">
+      <div style="gap: 8px;">
         <h2>Colors</h2>
-        <ul class="colors">
+        <ul class="inset colors">
           <li data-color="000000ff" style="background-color: black"></li>
           <li data-color="808080ff" style="background-color: gray;"></li>
           <li data-color="ffffffff" style="background-color: white;"></li>
@@ -69,17 +69,17 @@
           <li data-color="0000ffff" style="background-color: blue"></li>
           <li data-color="ff00ffff" style="background-color: magenta"></li>
         </ul>
-        <div id="saturationValuePicker" style="width: 125px; height: 125px; border: 2px solid black; background-blend-mode: multiply; background-image: linear-gradient(white, black),linear-gradient(to right, white, #ff0000);"></div>
-        <div id="huePicker" style="width: 125px; height: 25px; border: 2px solid black; background-image: linear-gradient(to right, red, yellow, #00ff00, cyan, blue, magenta, red);"></div>
-        <input type="text" id="color" maxlength="8" style="width: 125px;">
+        <div class="inset" id="saturationValuePicker" style="width: 129px; height: 129px; border: 2px solid black; background-blend-mode: multiply; background-image: linear-gradient(white, black),linear-gradient(to right, white, #ff0000);"></div>
+        <div class="inset" id="huePicker" style="width: 129px; height: 27px; border: 2px solid black; background-image: linear-gradient(to right, red, yellow, #00ff00, cyan, blue, magenta, red);"></div>
+        <input class="textInput" type="text" id="color" maxlength="8" style="width: 129px;">
       </div>
-      <div style="gap: 5px;">
+      <div style="gap: 8px;">
         <h2>Canvas</h2>
         <ul style="display: grid; grid-template-columns: auto auto;">
           <label for="canvasWidth">Width:</label>
-          <input type="number" id="canvasWidth" value="960" min="1" max="4096">
+          <input class="textInput" type="number" id="canvasWidth" value="960" min="1" max="4096">
           <label for="canvasHeight">Height:</label>
-          <input type="number" id="canvasHeight" value="540" min="1" max="4096">
+          <input class="textInput" type="number" id="canvasHeight" value="540" min="1" max="4096">
         </ul>
         <button type="button" id="resizeCanvas">Resize</button>
         <button type="button" id="downloadCanvas">Download</button>

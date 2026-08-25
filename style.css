@@ -16,13 +16,13 @@
 body {
     display: flex;
     height: 100vh;
-    padding: 10px 10px 10px 0;
+    padding: 16px 16px 16px 4px;
+    background-color: #7d929e;
 }
 
 aside {
     display: flex;
     flex-direction: column;
-    background-color: white;
     padding: 15px;
     gap: 10px;
 }
@@ -41,15 +41,31 @@ ul {
     gap: 5px;
 }
 
+.tool {
+    background-color: #c6c6c6;
+    outline: 2px solid black;
+    border: 2px solid white;
+    border-radius: 2px;
+}
+
+.tool:hover {
+    background-color: white;
+}
+
 .tools .active {
-    outline: 2px solid #655561;
+    background-color: white;
 }
 
 ul.colors {
     display: grid;
     grid-template-columns: 25px 25px 25px 25px 25px;
     gap: 0;
+}
+
+.inset {
     border: 2px solid black;
+    border-radius: 2px;
+    outline: 2px inset #adcade;
 }
 
 .colors li {
@@ -62,12 +78,19 @@ aside div {
     flex-direction: column;
 }
 
+.textInput {
+    padding: 1px 1px 4px 4px;
+    outline: 2px solid white;
+    border: 2px solid black;
+    border-radius: 2px;
+}
+
 button {
     background-color: #c6c6c6;
     padding: 2px 2px 4px 4px;
-    outline: 1px solid black;
-    border: 1px solid white;
-    border-radius: 4px;
+    outline: 2px solid black;
+    border: 2px solid white;
+    border-radius: 2px;
 }
 
 button:hover {
@@ -83,7 +106,9 @@ main {
     flex: 1;
     align-items: center;
     justify-content: center;
+    outline: 2px solid white;
     border: 2px solid black;
+    border-radius: 2px;
     background-color: #655561;
     overflow: auto;
 }
